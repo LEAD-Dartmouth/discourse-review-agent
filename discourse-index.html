@@ -663,7 +663,7 @@
           fullText += pageText + '\n\n';
         }
         document.getElementById('app-text').value = fullText.trim();
-        document.getElementById('app-text').placeholder = 'Extracted text — review and edit if needed before submitting.';
+        document.getElementById('app-text').placeholder = 'Extracted text - review and edit if needed before submitting.';
       } catch (err) {
         document.getElementById('app-text').placeholder = 'Could not extract text from this PDF. Please paste the application text manually.';
         console.error('PDF extraction error:', err);
@@ -683,31 +683,31 @@
 
   const DBD_RUBRIC = `You are reviewing a Discourse Beyond Dartmouth (DbD) funding application. Evaluate it against these five criteria:
 
-CRITERION 1 — PROPOSAL QUALITY
+CRITERION 1 - PROPOSAL QUALITY
 "Proposal is detailed, thoughtful and comprehensive and outlines specific, advocacy-driven objectives of the experience along with learning goals."
 - Does Not Satisfy: Does not provide enough information to make an informed decision and/or does not clearly outline experience objectives or goals.
 - Meets Requirements: Proposal is detailed and outlines objectives and goals.
 - Exceeds Requirements: Proposal is thorough, detailed and thoughtful; it clearly outlines goals and objectives.
 
-CRITERION 2 — MISSION ALIGNMENT
+CRITERION 2 - MISSION ALIGNMENT
 "Proposed engagement is aligned with Dartmouth's mission to instill a sense of responsibility for each other and for the broader world."
 - Does Not Satisfy: It is unclear how opportunity is aligned with the stated mission.
 - Meets Requirements: You can connect the opportunity with the stated mission.
 - Exceeds Requirements: The opportunity is clearly aligned with the stated mission.
 
-CRITERION 3 — ENGAGEMENT PARAMETERS
+CRITERION 3 - ENGAGEMENT PARAMETERS
 "Proposed engagement allows participant(s) to: apply their academic and co-curricular knowledge in support of social issues; supplement their academic instruction through direct engagement with advocacy groups, policymakers, and alumni; equip students with practical skills to engage in advocacy and activism beyond Dartmouth; and/or foster their abilities to become active contributors to social progress."
 - Does Not Satisfy: Opportunity does not satisfy any of the above parameters.
 - Meets Requirements: Opportunity would satisfy at least one of the above parameters.
 - Exceeds Requirements: Opportunity explicitly states how it would satisfy more than one of the above parameters.
 
-CRITERION 4 — POST-EXPERIENCE REFLECTION
+CRITERION 4 - POST-EXPERIENCE REFLECTION
 "Proposal outlines a post-experience reflection or event that will share acquired skills or learning with the campus community. This could be in the form of an art project, op-ed, blog post, write-up for the Discourse Fund web page, forum, etc."
 - Does Not Satisfy: Proposal does not make clear how they will demonstrate to the Dartmouth community what they gained or learned from the experience.
 - Meets Requirements: Proposal makes clear how they will demonstrate to the Dartmouth community what they gained or learned from the experience.
 - Exceeds Requirements: I am looking forward to seeing or reading about this experience based on the proposed post-experience reflection.
 
-CRITERION 5 — SAFETY AND COMPLIANCE
+CRITERION 5 - SAFETY AND COMPLIANCE
 "Proposed engagement does not appear to put participant(s) in harm; does not appear to include unlawful activities; and/or will not impose undue liability upon the institution or other participants."
 - Does Not Satisfy: I have serious concerns about the proposed activities or engagements.
 - Meets Requirements: I have minimal concerns and they have outlined clearly how they plan to avoid risk and harm.
@@ -715,35 +715,35 @@ CRITERION 5 — SAFETY AND COMPLIANCE
 
   const DAD_RUBRIC = `You are reviewing a Discourse at Dartmouth (DaD) funding application. Evaluate it against these five criteria:
 
-CRITERION 1 — COMMUNITY BENEFIT AND ENGAGEMENT
+CRITERION 1 - COMMUNITY BENEFIT AND ENGAGEMENT
 "Event is open to and would benefit the College community and includes a means for attendees to engage, i.e., a Q&A. Proposed event does more than just serve the organization and/or its members."
 - Does Not Satisfy: Proposed event is not open to all of campus and does not identify a means for attendees to engage.
 - Meets Requirements: Proposed event is open to all of campus.
 - Exceeds Requirements: Proposed event is open to all of campus; has a means for attendees to engage; and provides clear rationale for how it would benefit campus community.
 
-CRITERION 2 — FORMAT
+CRITERION 2 - FORMAT
 "Event is formatted as a panel, debate, performance, or cultural exhibition. Ideally, proposed events offer multiple viewpoints, but not a requirement. A culture-based performance can provide similar value."
 - Does Not Satisfy: Proposed event is not formatted as a panel, debate, performance or cultural exhibition. It offers a viewpoint on one often explored topic.
 - Meets Requirements: Proposed event is formatted as a panel, debate, performance or cultural exhibition.
 - Exceeds Requirements: Proposed event is formatted as a panel, debate, performance or cultural exhibition; would offer multiple or rarely-explored viewpoints to attendees.
 
-CRITERION 3 — DIALOGUE AND REFLECTION
+CRITERION 3 - DIALOGUE AND REFLECTION
 "Event promotes critical thinking, listening, and discussion. Event fosters the exploration of identities, differences, and belonging. Event emphasizes common understanding. And/or the event inspires introspection and promotes ongoing dialogue."
 - Does Not Satisfy: Proposed event does not satisfy any of the above parameters.
 - Meets Requirements: Proposed event would satisfy at least one of the above parameters.
 - Exceeds Requirements: Proposed event would satisfy more than one of the above parameters.
 
-CRITERION 4 — COLLABORATION
+CRITERION 4 - COLLABORATION
 "Event is proposed and sponsored by more than one organization and/or collaboration with a campus department, center, etc."
 - Does Not Satisfy: Proposed event does not satisfy the above parameter.
 - Meets Requirements: Proposed event would satisfy the above parameter.
 - Exceeds Requirements: Proposed event offers collaboration between organizations AND a campus center, department, division, etc.
 
-CRITERION 5 — APPROPRIATENESS
+CRITERION 5 - APPROPRIATENESS
 "Event does not include provocateurs or political campaign activities."
 - Does Not Satisfy: Proposed event does not satisfy the above parameters.
 - Meets Requirements: Proposed event would satisfy the above parameters.
-- Exceeds Requirements: N/A — treat as Meets Requirements if satisfied.`;
+- Exceeds Requirements: N/A - treat as Meets Requirements if satisfied.`;
 
   async function runReview() {
     const appText = document.getElementById('app-text').value.trim();
@@ -770,21 +770,21 @@ CRITERION 5 — APPROPRIATENESS
 
 ${rubric}
 
-Respond ONLY with a valid JSON object in exactly this structure — no preamble, no markdown fences:
+Respond ONLY with a valid JSON object in exactly this structure - no preamble, no markdown fences:
 {
   "applicant_summary": "One sentence: who is applying and what they propose to do.",
   "criteria": [
     {
       "number": 1,
       "label": "Short criterion label",
-      "rating": "Exceeds Requirements" | "Meets Requirements" | "Does Not Satisfy" | "Unclear — More Information Needed",
+      "rating": "Exceeds Requirements" | "Meets Requirements" | "Does Not Satisfy" | "Unclear - More Information Needed",
       "rationale": "2-3 sentences with specific reference to the application text."
     }
   ],
-  "flags": ["Flag if any — empty array if none"],
+  "flags": ["Flag if any - empty array if none"],
   "recommendation": "Approve" | "Approve with Conditions" | "Decline" | "More Information Needed",
   "recommendation_rationale": "2-3 sentences summarizing the overall recommendation.",
-  "draft_response": "Professional, warm draft response body to the applicant. If approved: briefly congratulate, note strengths, include any conditions. If declined: thank them, explain which criteria were not met, encourage reapplication if appropriate. If more info needed: specify exactly what is missing. Write in first person plural (we). No salutation or sign-off — body only."
+  "draft_response": "Professional, warm draft response body to the applicant. If approved: briefly congratulate, note strengths, include any conditions. If declined: thank them, explain which criteria were not met, encourage reapplication if appropriate. If more info needed: specify exactly what is missing. Write in first person plural (we). No salutation or sign-off - body only."
 }`;
 
     try {
@@ -827,20 +827,20 @@ Respond ONLY with a valid JSON object in exactly this structure — no preamble,
     document.getElementById('out-title').textContent = result.applicant_summary || 'Application Review';
     document.getElementById('out-badge').textContent = selectedFund === 'dbd' ? 'Beyond Dartmouth' : 'At Dartmouth';
 
-    const counts = { 'Exceeds Requirements': 0, 'Meets Requirements': 0, 'Does Not Satisfy': 0, 'Unclear — More Information Needed': 0 };
+    const counts = { 'Exceeds Requirements': 0, 'Meets Requirements': 0, 'Does Not Satisfy': 0, 'Unclear - More Information Needed': 0 };
     result.criteria.forEach(c => { if (counts[c.rating] !== undefined) counts[c.rating]++; });
 
     const chipStyles = {
       'Exceeds Requirements': 'background:#dcfce7;color:#166534',
       'Meets Requirements': 'background:#dbeafe;color:#1e40af',
       'Does Not Satisfy': 'background:#fee2e2;color:#991b1b',
-      'Unclear — More Information Needed': 'background:#fef3c7;color:#92400e'
+      'Unclear - More Information Needed': 'background:#fef3c7;color:#92400e'
     };
     const chipLabels = {
       'Exceeds Requirements': 'Exceeds',
       'Meets Requirements': 'Meets',
       'Does Not Satisfy': 'Does Not Satisfy',
-      'Unclear — More Information Needed': 'Unclear'
+      'Unclear - More Information Needed': 'Unclear'
     };
 
     let chips = '';
@@ -884,7 +884,7 @@ Respond ONLY with a valid JSON object in exactly this structure — no preamble,
     recBox.style.borderLeftColor = recBorderColors[result.recommendation] || '#00693E';
     recBox.style.background = result.recommendation === 'Decline' ? '#fee2e2' : result.recommendation === 'Approve' ? 'var(--green-light)' : '#fffbeb';
 
-    document.getElementById('rec-text').textContent = `${result.recommendation} — ${result.recommendation_rationale}`;
+    document.getElementById('rec-text').textContent = `${result.recommendation} - ${result.recommendation_rationale}`;
     document.getElementById('draft-body').textContent = result.draft_response;
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
