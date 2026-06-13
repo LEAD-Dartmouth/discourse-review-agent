@@ -795,7 +795,7 @@ Respond ONLY with a valid JSON object in exactly this structure - no preamble, n
         },
         body: JSON.stringify({
           model: 'anthropic.claude-sonnet-4-6',
-          max_tokens: 1500,
+          max_tokens: 3000,
           messages: [
             { role: 'system', content: systemPrompt },
             { role: 'user', content: `Please review this ${fundName} application:\n\n${appText}` }
