@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Discourse Fund Review Agent</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
   :root {
     --green: #00693E;
@@ -111,6 +113,18 @@
     background: #f5f5f5;
   }
 
+  .doc-section {
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--green-light);
+  }
+
+  .doc-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
   .section-label {
     font-size: 13px;
     font-weight: bold;
@@ -118,13 +132,34 @@
     text-transform: uppercase;
     letter-spacing: 0.05em;
     margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .required-badge {
+    font-size: 10px;
+    font-weight: bold;
+    background: #fef3c7;
+    color: var(--flag);
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .doc-hint {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    margin-top: -2px;
   }
 
   /* Upload zone */
   .upload-zone {
     border: 2px dashed var(--border);
     border-radius: 6px;
-    padding: 28px 20px;
+    padding: 22px 20px;
     text-align: center;
     cursor: pointer;
     transition: all 0.15s;
@@ -148,8 +183,8 @@
   }
 
   .upload-icon {
-    font-size: 28px;
-    margin-bottom: 8px;
+    font-size: 24px;
+    margin-bottom: 6px;
   }
 
   .upload-primary {
@@ -203,7 +238,7 @@
     display: flex;
     align-items: center;
     gap: 12px;
-    margin: 16px 0;
+    margin: 14px 0;
     color: #aaa;
     font-size: 12px;
     text-transform: uppercase;
@@ -229,6 +264,10 @@
     resize: vertical;
     color: var(--ink);
     background: #fdfdfd;
+  }
+
+  textarea.compact {
+    min-height: 90px;
   }
 
   textarea:focus {
@@ -532,28 +571,82 @@
       <button class="fund-btn" id="btn-dad" onclick="selectFund('dad')">Discourse at Dartmouth</button>
     </div>
 
-    <div class="section-label">Upload Application PDF</div>
-    <div class="upload-zone" id="upload-zone"
-      ondragover="handleDragOver(event)"
-      ondragleave="handleDragLeave(event)"
-      ondrop="handleDrop(event)">
-      <input type="file" accept=".pdf" id="pdf-input" onchange="handleFileSelect(event)">
-      <div class="upload-icon">📄</div>
-      <div class="upload-primary">Click to upload or drag and drop</div>
-      <div class="upload-secondary">PDF files only</div>
+    <!-- APPLICATION -->
+    <div class="doc-section">
+      <div class="section-label">Upload Application PDF <span class="required-badge">Required</span></div>
+      <div class="upload-zone" id="application-upload-zone"
+        ondragover="handleDragOver(event, 'application')"
+        ondragleave="handleDragLeave(event, 'application')"
+        ondrop="handleDrop(event, 'application')">
+        <input type="file" accept=".pdf" id="application-input" onchange="handleFileSelect(event, 'application')">
+        <div class="upload-icon">📄</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF files only</div>
+      </div>
+
+      <div class="file-selected" id="application-file-selected">
+        <span>📄</span>
+        <span class="file-name" id="application-file-name"></span>
+        <button class="remove-file" onclick="removeFile('application')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea id="application-text" placeholder="Paste application text here as a fallback, or if the PDF extraction misses content."></textarea>
+      <div class="textarea-hint">If you upload a PDF, extracted text will appear here automatically. You can edit it before reviewing.</div>
     </div>
 
-    <div class="file-selected" id="file-selected">
-      <span>📄</span>
-      <span class="file-name" id="file-name"></span>
-      <button class="remove-file" onclick="removeFile()" title="Remove file">✕</button>
+    <!-- ITINERARY -->
+    <div class="doc-section">
+      <div class="section-label">Upload Itinerary <span class="required-badge">Required</span></div>
+      <div class="doc-hint">PDF, Word, Excel, CSV, or image files accepted.</div>
+      <div class="upload-zone" id="itinerary-upload-zone"
+        ondragover="handleDragOver(event, 'itinerary')"
+        ondragleave="handleDragLeave(event, 'itinerary')"
+        ondrop="handleDrop(event, 'itinerary')">
+        <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp" id="itinerary-input" onchange="handleFileSelect(event, 'itinerary')">
+        <div class="upload-icon">🗺️</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF, Word, Excel, CSV, or image</div>
+      </div>
+
+      <div class="file-selected" id="itinerary-file-selected">
+        <span>📎</span>
+        <span class="file-name" id="itinerary-file-name"></span>
+        <button class="remove-file" onclick="removeFile('itinerary')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea class="compact" id="itinerary-text" placeholder="Paste itinerary details here as a fallback, or if extraction misses content."></textarea>
+      <div class="textarea-hint">If you upload an image, it will be sent to the reviewer as an attached image rather than extracted text.</div>
     </div>
 
-    <div class="or-divider">or paste text manually</div>
+    <!-- BUDGET -->
+    <div class="doc-section">
+      <div class="section-label">Upload Budget <span class="required-badge">Required</span></div>
+      <div class="doc-hint">PDF, Word, Excel, CSV, or image files accepted.</div>
+      <div class="upload-zone" id="budget-upload-zone"
+        ondragover="handleDragOver(event, 'budget')"
+        ondragleave="handleDragLeave(event, 'budget')"
+        ondrop="handleDrop(event, 'budget')">
+        <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp" id="budget-input" onchange="handleFileSelect(event, 'budget')">
+        <div class="upload-icon">💵</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF, Word, Excel, CSV, or image</div>
+      </div>
 
-    <div class="section-label">Application Text</div>
-    <textarea id="app-text" placeholder="Paste application text here as a fallback, or if the PDF extraction misses content."></textarea>
-    <div class="textarea-hint">If you upload a PDF, extracted text will appear here automatically. You can edit it before reviewing.</div>
+      <div class="file-selected" id="budget-file-selected">
+        <span>📎</span>
+        <span class="file-name" id="budget-file-name"></span>
+        <button class="remove-file" onclick="removeFile('budget')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea class="compact" id="budget-text" placeholder="Paste budget details here as a fallback, or if extraction misses content."></textarea>
+      <div class="textarea-hint">If you upload an image, it will be sent to the reviewer as an attached image rather than extracted text.</div>
+    </div>
 
     <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
       <button class="review-btn" id="review-btn" onclick="runReview()">Review Application</button>
@@ -605,7 +698,19 @@
   pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
 
   let selectedFund = 'dbd';
-  let selectedFile = null;
+
+  // Holds state for each of the three upload slots.
+  // text: extracted/pasted text content
+  // imageDataUrl: set instead of text when the file is an image (sent to the model as an attached image)
+  // mimeType: original file mime type, used for image slots
+  const DOCS = {
+    application: { file: null, text: '', imageDataUrl: null, mimeType: null },
+    itinerary:   { file: null, text: '', imageDataUrl: null, mimeType: null },
+    budget:      { file: null, text: '', imageDataUrl: null, mimeType: null }
+  };
+
+  const SUPPORTING_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+  const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
 
   function selectFund(fund) {
     selectedFund = fund;
@@ -613,42 +718,65 @@
     document.getElementById('btn-dad').classList.toggle('active', fund === 'dad');
   }
 
-  // Drag and drop
-  function handleDragOver(e) {
-    e.preventDefault();
-    document.getElementById('upload-zone').classList.add('drag-over');
+  function extOf(filename) {
+    return filename.split('.').pop().toLowerCase();
   }
 
-  function handleDragLeave(e) {
-    document.getElementById('upload-zone').classList.remove('drag-over');
+  // ---- Drag and drop / file select (generalized across the three slots) ----
+
+  function handleDragOver(e, key) {
+    e.preventDefault();
+    document.getElementById(`${key}-upload-zone`).classList.add('drag-over');
   }
 
-  function handleDrop(e) {
+  function handleDragLeave(e, key) {
+    document.getElementById(`${key}-upload-zone`).classList.remove('drag-over');
+  }
+
+  function handleDrop(e, key) {
     e.preventDefault();
-    document.getElementById('upload-zone').classList.remove('drag-over');
+    document.getElementById(`${key}-upload-zone`).classList.remove('drag-over');
     const file = e.dataTransfer.files[0];
-    if (file && file.type === 'application/pdf') {
-      processFile(file);
+    if (!file) return;
+
+    const ext = extOf(file.name);
+    if (key === 'application') {
+      if (ext === 'pdf') {
+        processApplicationFile(file);
+      } else {
+        showError('Please upload a PDF file for the application.');
+      }
     } else {
-      showError('Please upload a PDF file.');
+      if (SUPPORTING_EXTENSIONS.includes(ext)) {
+        processSupportingFile(file, key);
+      } else {
+        showError('Please upload a PDF, Word, Excel, CSV, or image file.');
+      }
     }
   }
 
-  function handleFileSelect(e) {
+  function handleFileSelect(e, key) {
     const file = e.target.files[0];
-    if (file) processFile(file);
+    if (!file) return;
+    if (key === 'application') {
+      processApplicationFile(file);
+    } else {
+      processSupportingFile(file, key);
+    }
   }
 
-  function processFile(file) {
-    selectedFile = file;
-    document.getElementById('file-name').textContent = file.name;
-    document.getElementById('file-selected').style.display = 'flex';
-    document.getElementById('upload-zone').style.display = 'none';
+  // ---- Application (PDF only, unchanged behavior) ----
+
+  function processApplicationFile(file) {
+    DOCS.application.file = file;
+    document.getElementById('application-file-name').textContent = file.name;
+    document.getElementById('application-file-selected').style.display = 'flex';
+    document.getElementById('application-upload-zone').style.display = 'none';
     document.getElementById('error-box').style.display = 'none';
 
-    // Extract text from PDF
-    document.getElementById('app-text').placeholder = 'Extracting text from PDF...';
-    document.getElementById('app-text').value = '';
+    const textarea = document.getElementById('application-text');
+    textarea.placeholder = 'Extracting text from PDF...';
+    textarea.value = '';
 
     const reader = new FileReader();
     reader.onload = async function(e) {
@@ -662,23 +790,117 @@
           const pageText = content.items.map(item => item.str).join(' ');
           fullText += pageText + '\n\n';
         }
-        document.getElementById('app-text').value = fullText.trim();
-        document.getElementById('app-text').placeholder = 'Extracted text - review and edit if needed before submitting.';
+        DOCS.application.text = fullText.trim();
+        textarea.value = DOCS.application.text;
+        textarea.placeholder = 'Extracted text - review and edit if needed before submitting.';
       } catch (err) {
-        document.getElementById('app-text').placeholder = 'Could not extract text from this PDF. Please paste the application text manually.';
+        textarea.placeholder = 'Could not extract text from this PDF. Please paste the application text manually.';
         console.error('PDF extraction error:', err);
       }
     };
     reader.readAsArrayBuffer(file);
   }
 
-  function removeFile() {
-    selectedFile = null;
-    document.getElementById('file-selected').style.display = 'none';
-    document.getElementById('upload-zone').style.display = 'block';
-    document.getElementById('pdf-input').value = '';
-    document.getElementById('app-text').value = '';
-    document.getElementById('app-text').placeholder = 'Paste application text here as a fallback, or if the PDF extraction misses content.';
+  // ---- Itinerary / Budget (PDF, Word, Excel, CSV, or image) ----
+
+  async function extractSupportingContent(file) {
+    const ext = extOf(file.name);
+
+    if (ext === 'pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const typedArray = new Uint8Array(arrayBuffer);
+      const pdf = await pdfjsLib.getDocument(typedArray).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(item => item.str).join(' ') + '\n\n';
+      }
+      return { type: 'text', text: fullText.trim() };
+    }
+
+    if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return { type: 'text', text: result.value.trim() };
+    }
+
+    if (ext === 'doc') {
+      // Legacy .doc binary format isn't reliably readable client-side.
+      throw new Error('LEGACY_DOC');
+    }
+
+    if (ext === 'xlsx' || ext === 'xls') {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      let text = '';
+      workbook.SheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        text += `--- Sheet: ${name} ---\n${XLSX.utils.sheet_to_csv(sheet)}\n\n`;
+      });
+      return { type: 'text', text: text.trim() };
+    }
+
+    if (ext === 'csv') {
+      const text = await file.text();
+      return { type: 'text', text: text.trim() };
+    }
+
+    if (IMAGE_EXTENSIONS.includes(ext)) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      return { type: 'image', dataUrl, mimeType: file.type };
+    }
+
+    throw new Error('UNSUPPORTED');
+  }
+
+  async function processSupportingFile(file, key) {
+    DOCS[key].file = file;
+    document.getElementById(`${key}-file-name`).textContent = file.name;
+    document.getElementById(`${key}-file-selected`).style.display = 'flex';
+    document.getElementById(`${key}-upload-zone`).style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+
+    const textarea = document.getElementById(`${key}-text`);
+    textarea.placeholder = 'Extracting content...';
+    textarea.value = '';
+    DOCS[key].text = '';
+    DOCS[key].imageDataUrl = null;
+    DOCS[key].mimeType = null;
+
+    try {
+      const result = await extractSupportingContent(file);
+      if (result.type === 'text') {
+        DOCS[key].text = result.text;
+        textarea.value = result.text;
+        textarea.placeholder = 'Extracted text - review and edit if needed before submitting.';
+      } else {
+        DOCS[key].imageDataUrl = result.dataUrl;
+        DOCS[key].mimeType = result.mimeType;
+        textarea.value = '';
+        textarea.placeholder = 'Image attached - it will be sent to the reviewer as an image. You can also type a text description here instead.';
+      }
+    } catch (err) {
+      if (err.message === 'LEGACY_DOC') {
+        textarea.placeholder = 'Legacy .doc files can\'t be read automatically. Please paste the text manually, or re-upload as PDF or .docx.';
+      } else {
+        textarea.placeholder = 'Could not read this file. Please paste the text manually.';
+      }
+      console.error('Supporting document extraction error:', err);
+    }
+  }
+
+  function removeFile(key) {
+    DOCS[key] = { file: null, text: '', imageDataUrl: null, mimeType: null };
+    document.getElementById(`${key}-file-selected`).style.display = 'none';
+    document.getElementById(`${key}-upload-zone`).style.display = 'block';
+    document.getElementById(`${key}-input`).value = '';
+    document.getElementById(`${key}-text`).value = '';
   }
 
   const DBD_RUBRIC = `You are reviewing a Discourse Beyond Dartmouth (DbD) funding application. Evaluate it against these five criteria:
@@ -745,10 +967,56 @@ CRITERION 5 - APPROPRIATENESS
 - Meets Requirements: Proposed event would satisfy the above parameters.
 - Exceeds Requirements: N/A - treat as Meets Requirements if satisfied.`;
 
+  // Builds the user message content sent to the model. Returns a plain string when
+  // there are no image attachments (backward compatible with the original API call),
+  // or a multimodal content array when an itinerary/budget was uploaded as an image.
+  function buildUserContent(appText, fundName, itinerary, budget) {
+    const sections = [`=== APPLICATION ===\n${appText}`];
+    const imageParts = [];
+
+    if (itinerary.imageDataUrl) {
+      imageParts.push({ label: 'ITINERARY', dataUrl: itinerary.imageDataUrl });
+    } else {
+      sections.push(`=== ITINERARY ===\n${itinerary.text}`);
+    }
+
+    if (budget.imageDataUrl) {
+      imageParts.push({ label: 'BUDGET', dataUrl: budget.imageDataUrl });
+    } else {
+      sections.push(`=== BUDGET ===\n${budget.text}`);
+    }
+
+    const introText = `Please review this ${fundName} application. Supporting documentation (itinerary and budget) is included below, or attached as images, and should inform your evaluation of feasibility, budget appropriateness, and safety/compliance.\n\n` + sections.join('\n\n');
+
+    if (imageParts.length === 0) {
+      return introText;
+    }
+
+    const content = [{ type: 'text', text: introText }];
+    imageParts.forEach(p => {
+      content.push({ type: 'text', text: `=== ${p.label} (attached image) ===` });
+      content.push({ type: 'image_url', image_url: { url: p.dataUrl } });
+    });
+    return content;
+  }
+
   async function runReview() {
-    const appText = document.getElementById('app-text').value.trim();
-    if (!appText) {
-      showError('Please upload a PDF or paste application text before reviewing.');
+    // Sync any manual edits from the textareas back into DOCS before validating.
+    DOCS.application.text = document.getElementById('application-text').value.trim();
+    if (!DOCS.itinerary.imageDataUrl) {
+      DOCS.itinerary.text = document.getElementById('itinerary-text').value.trim();
+    }
+    if (!DOCS.budget.imageDataUrl) {
+      DOCS.budget.text = document.getElementById('budget-text').value.trim();
+    }
+
+    const missing = [];
+    if (!DOCS.application.text) missing.push('Application');
+    if (!DOCS.itinerary.text && !DOCS.itinerary.imageDataUrl) missing.push('Itinerary');
+    if (!DOCS.budget.text && !DOCS.budget.imageDataUrl) missing.push('Budget');
+
+    if (missing.length > 0) {
+      showError(`Please upload or paste content for: ${missing.join(', ')}.`);
       return;
     }
 
@@ -759,7 +1027,7 @@ CRITERION 5 - APPROPRIATENESS
     document.getElementById('loading').style.display = 'flex';
     document.getElementById('error-box').style.display = 'none';
 
-    const messages = ['Reading application...', 'Evaluating against rubric...', 'Drafting response...'];
+    const messages = ['Reading application...', 'Reviewing itinerary and budget...', 'Evaluating against rubric...', 'Drafting response...'];
     let idx = 0;
     const msgInterval = setInterval(() => {
       idx = (idx + 1) % messages.length;
@@ -767,6 +1035,8 @@ CRITERION 5 - APPROPRIATENESS
     }, 2200);
 
     const systemPrompt = `You are an expert application reviewer for the Dartmouth Discourse Fund. You evaluate funding applications with careful, fair, viewpoint-neutral judgment. You produce structured, professional review summaries.
+
+Along with the application text, you will be given supporting documentation: an itinerary and a budget. These may appear as text or as attached images. Use them as context to inform the existing criteria below (for example: does the budget match what's described in the proposal, is the itinerary feasible and consistent with the dates and activities described, do either raise safety or compliance concerns). Do not create a separate score for the itinerary or budget - fold your observations into the relevant criterion rationale, and use the flags array for any discrepancies or concerns worth the reviewer's attention (e.g., budget total doesn't match requested amount, itinerary dates don't align with proposal, unexplained costs).
 
 ${rubric}
 
@@ -787,6 +1057,8 @@ Respond ONLY with a valid JSON object in exactly this structure - no preamble, n
   "draft_response": "Professional, warm draft response body to the applicant. If approved: briefly congratulate, note strengths, include any conditions. If declined: thank them, explain which criteria were not met, encourage reapplication if appropriate. If more info needed: specify exactly what is missing. Write in first person plural (we). No salutation or sign-off - body only."
 }`;
 
+    const userContent = buildUserContent(DOCS.application.text, fundName, DOCS.itinerary, DOCS.budget);
+
     try {
       const response = await fetch('https://dartmouth-chat-proxy.efmckenna77.workers.dev', {
         method: 'POST',
@@ -798,7 +1070,7 @@ Respond ONLY with a valid JSON object in exactly this structure - no preamble, n
           max_tokens: 3000,
           messages: [
             { role: 'system', content: systemPrompt },
-            { role: 'user', content: `Please review this ${fundName} application:\n\n${appText}` }
+            { role: 'user', content: userContent }
           ]
         })
       });
@@ -902,7 +1174,9 @@ Respond ONLY with a valid JSON object in exactly this structure - no preamble, n
   function resetReview() {
     document.getElementById('input-card').style.display = 'block';
     document.getElementById('output-section').style.display = 'none';
-    removeFile();
+    removeFile('application');
+    removeFile('itinerary');
+    removeFile('budget');
     document.getElementById('error-box').style.display = 'none';
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
