@@ -1,0 +1,1025 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Discourse Beyond Dartmouth - Application Self-Check</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<style>
+  :root {
+    --green: #00693E;
+    --green-dark: #004d2e;
+    --green-light: #e8f3ec;
+    --green-mid: #c8e6d4;
+    --cream: #faf9f7;
+    --ink: #1a1a1a;
+    --mid: #555;
+    --border: #d0d0d0;
+    --exceeds: #00693E;
+    --meets: #2563eb;
+    --does-not: #dc2626;
+    --flag: #d97706;
+    --font-main: 'Georgia', serif;
+    --font-ui: 'Arial', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--font-ui);
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+  }
+
+  header {
+    background: var(--green);
+    color: white;
+    padding: 18px 32px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+
+  header .wordmark {
+    font-family: var(--font-main);
+    font-size: 20px;
+    font-weight: normal;
+    letter-spacing: 0.02em;
+  }
+
+  header .sub {
+    font-size: 13px;
+    opacity: 0.8;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+  }
+
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px;
+  }
+
+  .disclaimer {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+    border-radius: 6px;
+    padding: 14px 18px;
+    margin-bottom: 24px;
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: #78350f;
+  }
+
+  .disclaimer strong { color: #78350f; }
+
+  .card {
+    background: white;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 28px;
+    margin-bottom: 24px;
+  }
+
+  .card-title {
+    font-family: var(--font-main);
+    font-size: 17px;
+    font-weight: bold;
+    color: var(--green-dark);
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 2px solid var(--green-light);
+  }
+
+  .doc-section {
+    margin-bottom: 26px;
+    padding-bottom: 22px;
+    border-bottom: 1px solid var(--green-light);
+  }
+
+  .doc-section:last-of-type {
+    border-bottom: none;
+    margin-bottom: 0;
+    padding-bottom: 0;
+  }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--mid);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .required-badge {
+    font-size: 10px;
+    font-weight: bold;
+    background: #fef3c7;
+    color: var(--flag);
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .optional-badge {
+    font-size: 10px;
+    font-weight: bold;
+    background: #f3f4f6;
+    color: var(--mid);
+    padding: 2px 7px;
+    border-radius: 3px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .doc-hint {
+    font-size: 12px;
+    color: #888;
+    margin-bottom: 10px;
+    margin-top: -2px;
+  }
+
+  .upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 6px;
+    padding: 22px 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.15s;
+    background: #fdfcfb;
+    margin-bottom: 8px;
+    position: relative;
+  }
+
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: var(--green);
+    background: var(--green-light);
+  }
+
+  .upload-zone input[type="file"] {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+    width: 100%;
+    height: 100%;
+  }
+
+  .upload-icon {
+    font-size: 24px;
+    margin-bottom: 6px;
+  }
+
+  .upload-primary {
+    font-size: 14px;
+    font-weight: bold;
+    color: var(--green-dark);
+    margin-bottom: 4px;
+  }
+
+  .upload-secondary {
+    font-size: 12px;
+    color: #888;
+  }
+
+  .file-selected {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    background: var(--green-light);
+    border: 1px solid var(--green-mid);
+    border-radius: 5px;
+    padding: 10px 14px;
+    margin-bottom: 8px;
+    font-size: 13.5px;
+    color: var(--green-dark);
+  }
+
+  .file-selected .file-name {
+    flex: 1;
+    font-weight: bold;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .remove-file {
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--mid);
+    font-size: 16px;
+    padding: 0 4px;
+    line-height: 1;
+    flex-shrink: 0;
+  }
+
+  .remove-file:hover { color: var(--does-not); }
+
+  .or-divider {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 14px 0;
+    color: #aaa;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+
+  .or-divider::before, .or-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+  }
+
+  textarea {
+    width: 100%;
+    min-height: 160px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    font-family: var(--font-ui);
+    font-size: 14px;
+    line-height: 1.6;
+    resize: vertical;
+    color: var(--ink);
+    background: #fdfdfd;
+  }
+
+  textarea.compact {
+    min-height: 90px;
+  }
+
+  textarea:focus {
+    outline: none;
+    border-color: var(--green);
+    box-shadow: 0 0 0 3px rgba(0,105,62,0.08);
+  }
+
+  .textarea-hint {
+    font-size: 12px;
+    color: #888;
+    margin-top: 6px;
+  }
+
+  .review-btn {
+    background: var(--green);
+    color: white;
+    border: none;
+    padding: 13px 32px;
+    border-radius: 5px;
+    font-size: 15px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    transition: background 0.15s;
+    margin-top: 16px;
+  }
+
+  .review-btn:hover { background: var(--green-dark); }
+  .review-btn:disabled { background: #aaa; cursor: not-allowed; }
+
+  .loading {
+    display: none;
+    align-items: center;
+    gap: 10px;
+    margin-top: 16px;
+    color: var(--mid);
+    font-size: 14px;
+  }
+
+  .spinner {
+    width: 18px;
+    height: 18px;
+    border: 2px solid var(--green-mid);
+    border-top-color: var(--green);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    flex-shrink: 0;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .output-section { display: none; }
+
+  .review-header {
+    margin-bottom: 20px;
+  }
+
+  .review-title {
+    font-family: var(--font-main);
+    font-size: 20px;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .criteria-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 24px;
+  }
+
+  .criterion {
+    border: 1px solid var(--border);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+
+  .criterion-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 14px;
+    background: #f9f9f9;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .rating-pill {
+    font-size: 11px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    padding: 3px 9px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .rating-exceeds { background: #dcfce7; color: var(--exceeds); }
+  .rating-meets { background: #dbeafe; color: var(--meets); }
+  .rating-does-not { background: #fee2e2; color: var(--does-not); }
+  .rating-unclear { background: #fef3c7; color: var(--flag); }
+
+  .criterion-label {
+    font-size: 13px;
+    font-weight: bold;
+    color: var(--ink);
+    line-height: 1.3;
+  }
+
+  .criterion-body {
+    padding: 12px 14px;
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #333;
+  }
+
+  .feedback-section {
+    border-radius: 5px;
+    padding: 14px 16px;
+    margin-bottom: 20px;
+  }
+
+  .strengths-section {
+    background: var(--green-light);
+    border: 1px solid var(--green-mid);
+  }
+
+  .suggestions-section {
+    background: #fffbeb;
+    border: 1px solid #fcd34d;
+  }
+
+  .feedback-title {
+    font-size: 12px;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    margin-bottom: 8px;
+  }
+
+  .strengths-section .feedback-title { color: var(--green-dark); }
+  .suggestions-section .feedback-title { color: var(--flag); }
+
+  .feedback-item {
+    font-size: 13.5px;
+    line-height: 1.6;
+    padding-left: 16px;
+    position: relative;
+    margin-bottom: 6px;
+  }
+
+  .strengths-section .feedback-item { color: #14532d; }
+  .suggestions-section .feedback-item { color: #78350f; }
+
+  .feedback-item::before {
+    position: absolute;
+    left: 0;
+    top: 0;
+  }
+
+  .strengths-section .feedback-item::before { content: '✓'; }
+  .suggestions-section .feedback-item::before { content: '→'; }
+
+  .score-summary {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .score-chip {
+    font-size: 12px;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+  }
+
+  .new-review-btn {
+    background: none;
+    border: 1px solid var(--green);
+    color: var(--green);
+    padding: 9px 20px;
+    border-radius: 5px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    margin-top: 8px;
+  }
+
+  .new-review-btn:hover { background: var(--green-light); }
+
+  .error-box {
+    background: #fee2e2;
+    border: 1px solid #fca5a5;
+    border-radius: 5px;
+    padding: 14px 16px;
+    color: #991b1b;
+    font-size: 13.5px;
+    margin-top: 16px;
+    display: none;
+  }
+
+  @media (max-width: 600px) {
+    .container { padding: 16px; }
+    .card { padding: 18px; }
+    header { padding: 14px 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <div class="wordmark">Discourse Beyond Dartmouth</div>
+    <div class="sub">Application Self-Check</div>
+  </div>
+</header>
+
+<div class="container">
+
+  <div class="disclaimer">
+    <strong>This is a self-check tool, not the official review.</strong> It's meant to help you strengthen your application before you submit it. Your actual application will be reviewed by Discourse Fund staff, and the outcome may differ from what you see here.
+  </div>
+
+  <div class="card" id="input-card">
+    <div class="card-title">Check Your Application</div>
+
+    <!-- APPLICATION -->
+    <div class="doc-section">
+      <div class="section-label">Upload Application PDF <span class="required-badge">Required</span></div>
+      <div class="upload-zone" id="application-upload-zone"
+        ondragover="handleDragOver(event, 'application')"
+        ondragleave="handleDragLeave(event, 'application')"
+        ondrop="handleDrop(event, 'application')">
+        <input type="file" accept=".pdf" id="application-input" onchange="handleFileSelect(event, 'application')">
+        <div class="upload-icon">📄</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF files only</div>
+      </div>
+
+      <div class="file-selected" id="application-file-selected">
+        <span>📄</span>
+        <span class="file-name" id="application-file-name"></span>
+        <button class="remove-file" onclick="removeFile('application')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea id="application-text" placeholder="Paste your application text here as a fallback, or if the PDF extraction misses content."></textarea>
+      <div class="textarea-hint">If you upload a PDF, extracted text will appear here automatically. You can edit it before checking.</div>
+    </div>
+
+    <!-- ITINERARY -->
+    <div class="doc-section">
+      <div class="section-label">Upload Itinerary <span class="optional-badge">Optional</span></div>
+      <div class="doc-hint">PDF, Word, Excel, CSV, or image files accepted. Adding this gives more complete feedback, but it's not required to use this tool.</div>
+      <div class="upload-zone" id="itinerary-upload-zone"
+        ondragover="handleDragOver(event, 'itinerary')"
+        ondragleave="handleDragLeave(event, 'itinerary')"
+        ondrop="handleDrop(event, 'itinerary')">
+        <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp" id="itinerary-input" onchange="handleFileSelect(event, 'itinerary')">
+        <div class="upload-icon">🗺️</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF, Word, Excel, CSV, or image</div>
+      </div>
+
+      <div class="file-selected" id="itinerary-file-selected">
+        <span>📎</span>
+        <span class="file-name" id="itinerary-file-name"></span>
+        <button class="remove-file" onclick="removeFile('itinerary')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea class="compact" id="itinerary-text" placeholder="Paste itinerary details here, if you have them."></textarea>
+    </div>
+
+    <!-- BUDGET -->
+    <div class="doc-section">
+      <div class="section-label">Upload Budget <span class="optional-badge">Optional</span></div>
+      <div class="doc-hint">PDF, Word, Excel, CSV, or image files accepted. Adding this gives more complete feedback, but it's not required to use this tool.</div>
+      <div class="upload-zone" id="budget-upload-zone"
+        ondragover="handleDragOver(event, 'budget')"
+        ondragleave="handleDragLeave(event, 'budget')"
+        ondrop="handleDrop(event, 'budget')">
+        <input type="file" accept=".pdf,.doc,.docx,.xls,.xlsx,.csv,.png,.jpg,.jpeg,.gif,.webp" id="budget-input" onchange="handleFileSelect(event, 'budget')">
+        <div class="upload-icon">💵</div>
+        <div class="upload-primary">Click to upload or drag and drop</div>
+        <div class="upload-secondary">PDF, Word, Excel, CSV, or image</div>
+      </div>
+
+      <div class="file-selected" id="budget-file-selected">
+        <span>📎</span>
+        <span class="file-name" id="budget-file-name"></span>
+        <button class="remove-file" onclick="removeFile('budget')" title="Remove file">✕</button>
+      </div>
+
+      <div class="or-divider">or paste text manually</div>
+
+      <textarea class="compact" id="budget-text" placeholder="Paste budget details here, if you have them."></textarea>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 16px; flex-wrap: wrap;">
+      <button class="review-btn" id="review-btn" onclick="runReview()">Check My Application</button>
+      <div class="loading" id="loading">
+        <div class="spinner"></div>
+        <span id="loading-text">Reading application...</span>
+      </div>
+    </div>
+
+    <div class="error-box" id="error-box"></div>
+  </div>
+
+  <div class="output-section" id="output-section">
+    <div class="disclaimer">
+      <strong>Reminder:</strong> this is feedback to help you improve your application, not the official review. The Discourse Fund committee makes the actual funding decision, and may see things differently.
+    </div>
+    <div class="card">
+      <div class="review-header">
+        <div class="review-title" id="out-title">Your Application Feedback</div>
+      </div>
+
+      <div class="score-summary" id="score-summary"></div>
+      <div class="criteria-grid" id="criteria-grid"></div>
+
+      <div class="feedback-section strengths-section" id="strengths-section" style="display:none">
+        <div class="feedback-title">What's Working Well</div>
+        <div id="strengths-list"></div>
+      </div>
+
+      <div class="feedback-section suggestions-section" id="suggestions-section" style="display:none">
+        <div class="feedback-title">Ways to Strengthen Your Application</div>
+        <div id="suggestions-list"></div>
+      </div>
+
+      <button class="new-review-btn" onclick="resetReview()">← Check Another Application</button>
+    </div>
+  </div>
+
+</div>
+
+<script>
+  pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+  const DOCS = {
+    application: { file: null, text: '', imageDataUrl: null, mimeType: null },
+    itinerary:   { file: null, text: '', imageDataUrl: null, mimeType: null },
+    budget:      { file: null, text: '', imageDataUrl: null, mimeType: null }
+  };
+
+  const SUPPORTING_EXTENSIONS = ['pdf', 'doc', 'docx', 'xls', 'xlsx', 'csv', 'png', 'jpg', 'jpeg', 'gif', 'webp'];
+  const IMAGE_EXTENSIONS = ['png', 'jpg', 'jpeg', 'gif', 'webp'];
+
+  function extOf(filename) {
+    return filename.split('.').pop().toLowerCase();
+  }
+
+  function handleDragOver(e, key) {
+    e.preventDefault();
+    document.getElementById(`${key}-upload-zone`).classList.add('drag-over');
+  }
+
+  function handleDragLeave(e, key) {
+    document.getElementById(`${key}-upload-zone`).classList.remove('drag-over');
+  }
+
+  function handleDrop(e, key) {
+    e.preventDefault();
+    document.getElementById(`${key}-upload-zone`).classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (!file) return;
+
+    const ext = extOf(file.name);
+    if (key === 'application') {
+      if (ext === 'pdf') {
+        processApplicationFile(file);
+      } else {
+        showError('Please upload a PDF file for the application.');
+      }
+    } else {
+      if (SUPPORTING_EXTENSIONS.includes(ext)) {
+        processSupportingFile(file, key);
+      } else {
+        showError('Please upload a PDF, Word, Excel, CSV, or image file.');
+      }
+    }
+  }
+
+  function handleFileSelect(e, key) {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (key === 'application') {
+      processApplicationFile(file);
+    } else {
+      processSupportingFile(file, key);
+    }
+  }
+
+  function processApplicationFile(file) {
+    DOCS.application.file = file;
+    document.getElementById('application-file-name').textContent = file.name;
+    document.getElementById('application-file-selected').style.display = 'flex';
+    document.getElementById('application-upload-zone').style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+
+    const textarea = document.getElementById('application-text');
+    textarea.placeholder = 'Extracting text from PDF...';
+    textarea.value = '';
+
+    const reader = new FileReader();
+    reader.onload = async function(e) {
+      try {
+        const typedArray = new Uint8Array(e.target.result);
+        const pdf = await pdfjsLib.getDocument(typedArray).promise;
+        let fullText = '';
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const content = await page.getTextContent();
+          const pageText = content.items.map(item => item.str).join(' ');
+          fullText += pageText + '\n\n';
+        }
+        DOCS.application.text = fullText.trim();
+        textarea.value = DOCS.application.text;
+        textarea.placeholder = 'Extracted text - review and edit if needed before submitting.';
+      } catch (err) {
+        textarea.placeholder = 'Could not extract text from this PDF. Please paste the application text manually.';
+        console.error('PDF extraction error:', err);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  }
+
+  async function extractSupportingContent(file) {
+    const ext = extOf(file.name);
+
+    if (ext === 'pdf') {
+      const arrayBuffer = await file.arrayBuffer();
+      const typedArray = new Uint8Array(arrayBuffer);
+      const pdf = await pdfjsLib.getDocument(typedArray).promise;
+      let fullText = '';
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(item => item.str).join(' ') + '\n\n';
+      }
+      return { type: 'text', text: fullText.trim() };
+    }
+
+    if (ext === 'docx') {
+      const arrayBuffer = await file.arrayBuffer();
+      const result = await mammoth.extractRawText({ arrayBuffer });
+      return { type: 'text', text: result.value.trim() };
+    }
+
+    if (ext === 'doc') {
+      throw new Error('LEGACY_DOC');
+    }
+
+    if (ext === 'xlsx' || ext === 'xls') {
+      const arrayBuffer = await file.arrayBuffer();
+      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
+      let text = '';
+      workbook.SheetNames.forEach(name => {
+        const sheet = workbook.Sheets[name];
+        text += `--- Sheet: ${name} ---\n${XLSX.utils.sheet_to_csv(sheet)}\n\n`;
+      });
+      return { type: 'text', text: text.trim() };
+    }
+
+    if (ext === 'csv') {
+      const text = await file.text();
+      return { type: 'text', text: text.trim() };
+    }
+
+    if (IMAGE_EXTENSIONS.includes(ext)) {
+      const dataUrl = await new Promise((resolve, reject) => {
+        const r = new FileReader();
+        r.onload = () => resolve(r.result);
+        r.onerror = reject;
+        r.readAsDataURL(file);
+      });
+      return { type: 'image', dataUrl, mimeType: file.type };
+    }
+
+    throw new Error('UNSUPPORTED');
+  }
+
+  async function processSupportingFile(file, key) {
+    DOCS[key].file = file;
+    document.getElementById(`${key}-file-name`).textContent = file.name;
+    document.getElementById(`${key}-file-selected`).style.display = 'flex';
+    document.getElementById(`${key}-upload-zone`).style.display = 'none';
+    document.getElementById('error-box').style.display = 'none';
+
+    const textarea = document.getElementById(`${key}-text`);
+    textarea.placeholder = 'Extracting content...';
+    textarea.value = '';
+    DOCS[key].text = '';
+    DOCS[key].imageDataUrl = null;
+    DOCS[key].mimeType = null;
+
+    try {
+      const result = await extractSupportingContent(file);
+      if (result.type === 'text') {
+        DOCS[key].text = result.text;
+        textarea.value = result.text;
+        textarea.placeholder = 'Extracted text - review and edit if needed.';
+      } else {
+        DOCS[key].imageDataUrl = result.dataUrl;
+        DOCS[key].mimeType = result.mimeType;
+        textarea.value = '';
+        textarea.placeholder = 'Image attached - it will be sent as an image. You can also type a description here instead.';
+      }
+    } catch (err) {
+      if (err.message === 'LEGACY_DOC') {
+        textarea.placeholder = 'Legacy .doc files can\'t be read automatically. Please paste the text manually, or re-upload as PDF or .docx.';
+      } else {
+        textarea.placeholder = 'Could not read this file. Please paste the text manually.';
+      }
+      console.error('Supporting document extraction error:', err);
+    }
+  }
+
+  function removeFile(key) {
+    DOCS[key] = { file: null, text: '', imageDataUrl: null, mimeType: null };
+    document.getElementById(`${key}-file-selected`).style.display = 'none';
+    document.getElementById(`${key}-upload-zone`).style.display = 'block';
+    document.getElementById(`${key}-input`).value = '';
+    document.getElementById(`${key}-text`).value = '';
+  }
+
+  const DBD_RUBRIC = `You are helping an applicant self-check a Discourse Beyond Dartmouth (DbD) funding application before they submit it. Evaluate it against these five criteria, the same ones the official review committee uses:
+
+CRITERION 1 - PROPOSAL QUALITY
+"Proposal is detailed, thoughtful and comprehensive and outlines specific, advocacy-driven objectives of the experience along with learning goals."
+- Does Not Satisfy: Does not provide enough information to make an informed decision and/or does not clearly outline experience objectives or goals.
+- Meets Requirements: Proposal is detailed and outlines objectives and goals.
+- Exceeds Requirements: Proposal is thorough, detailed and thoughtful; it clearly outlines goals and objectives.
+
+CRITERION 2 - MISSION ALIGNMENT
+"Proposed engagement is aligned with Dartmouth's mission to instill a sense of responsibility for each other and for the broader world."
+- Does Not Satisfy: It is unclear how opportunity is aligned with the stated mission.
+- Meets Requirements: You can connect the opportunity with the stated mission.
+- Exceeds Requirements: The opportunity is clearly aligned with the stated mission.
+
+CRITERION 3 - ENGAGEMENT PARAMETERS
+"Proposed engagement allows participant(s) to: apply their academic and co-curricular knowledge in support of social issues; supplement their academic instruction through direct engagement with advocacy groups, policymakers, and alumni; equip students with practical skills to engage in advocacy and activism beyond Dartmouth; and/or foster their abilities to become active contributors to social progress."
+- Does Not Satisfy: Opportunity does not satisfy any of the above parameters.
+- Meets Requirements: Opportunity would satisfy at least one of the above parameters.
+- Exceeds Requirements: Opportunity explicitly states how it would satisfy more than one of the above parameters.
+
+CRITERION 4 - POST-EXPERIENCE REFLECTION
+"Proposal outlines a post-experience reflection or event that will share acquired skills or learning with the campus community. This could be in the form of an art project, op-ed, blog post, write-up for the Discourse Fund web page, forum, etc."
+- Does Not Satisfy: Proposal does not make clear how they will demonstrate to the Dartmouth community what they gained or learned from the experience.
+- Meets Requirements: Proposal makes clear how they will demonstrate to the Dartmouth community what they gained or learned from the experience.
+- Exceeds Requirements: I am looking forward to seeing or reading about this experience based on the proposed post-experience reflection.
+
+CRITERION 5 - SAFETY AND COMPLIANCE
+"Proposed engagement does not appear to put participant(s) in harm; does not appear to include unlawful activities; and/or will not impose undue liability upon the institution or other participants."
+- Does Not Satisfy: I have serious concerns about the proposed activities or engagements.
+- Meets Requirements: I have minimal concerns and they have outlined clearly how they plan to avoid risk and harm.
+- Exceeds Requirements: I have absolutely no concerns about the proposed engagement or activities.`;
+
+  function buildUserContent(appText, itinerary, budget) {
+    const sections = [`=== APPLICATION ===\n${appText}`];
+    const imageParts = [];
+
+    if (itinerary.imageDataUrl) {
+      imageParts.push({ label: 'ITINERARY', dataUrl: itinerary.imageDataUrl });
+    } else if (itinerary.text) {
+      sections.push(`=== ITINERARY ===\n${itinerary.text}`);
+    }
+
+    if (budget.imageDataUrl) {
+      imageParts.push({ label: 'BUDGET', dataUrl: budget.imageDataUrl });
+    } else if (budget.text) {
+      sections.push(`=== BUDGET ===\n${budget.text}`);
+    }
+
+    const introText = `Please give self-check feedback on this Discourse Beyond Dartmouth application. Itinerary and/or budget documentation may be included below or attached as images if the applicant chose to provide them - use them as context if present, but their absence should not itself be treated as a weakness.\n\n` + sections.join('\n\n');
+
+    if (imageParts.length === 0) {
+      return introText;
+    }
+
+    const content = [{ type: 'text', text: introText }];
+    imageParts.forEach(p => {
+      content.push({ type: 'text', text: `=== ${p.label} (attached image) ===` });
+      content.push({ type: 'image_url', image_url: { url: p.dataUrl } });
+    });
+    return content;
+  }
+
+  async function runReview() {
+    DOCS.application.text = document.getElementById('application-text').value.trim();
+    if (!DOCS.itinerary.imageDataUrl) {
+      DOCS.itinerary.text = document.getElementById('itinerary-text').value.trim();
+    }
+    if (!DOCS.budget.imageDataUrl) {
+      DOCS.budget.text = document.getElementById('budget-text').value.trim();
+    }
+
+    if (!DOCS.application.text) {
+      showError('Please upload or paste your application text before checking.');
+      return;
+    }
+
+    document.getElementById('review-btn').disabled = true;
+    document.getElementById('loading').style.display = 'flex';
+    document.getElementById('error-box').style.display = 'none';
+
+    const messages = ['Reading your application...', 'Checking against the rubric...', 'Putting together feedback...'];
+    let idx = 0;
+    const msgInterval = setInterval(() => {
+      idx = (idx + 1) % messages.length;
+      document.getElementById('loading-text').textContent = messages[idx];
+    }, 2200);
+
+    const systemPrompt = `You are a supportive writing coach helping a student or applicant self-check their Discourse Beyond Dartmouth funding application before they submit it. You are NOT the official reviewer and you do not make a funding decision. Your job is to help them see how their application currently reads against the same criteria the review committee will use, and to give concrete, encouraging, actionable suggestions for improving it.
+
+${DBD_RUBRIC}
+
+Tone guidance: be warm and constructive, never bureaucratic or discouraging. Assume the applicant is putting in good-faith effort. Where something is missing or unclear, frame it as "consider adding..." or "it would help to clarify..." rather than a deficiency. Where something is strong, say so specifically.
+
+Respond ONLY with a valid JSON object in exactly this structure - no preamble, no markdown fences:
+{
+  "applicant_summary": "One encouraging sentence naming what they're proposing to do.",
+  "criteria": [
+    {
+      "number": 1,
+      "label": "Short criterion label",
+      "rating": "Exceeds Requirements" | "Meets Requirements" | "Does Not Satisfy" | "Unclear - More Information Needed",
+      "feedback": "2-3 sentences of specific, constructive coaching tied to the application text - what's working, and/or what to add or clarify."
+    }
+  ],
+  "strengths": ["1-3 short specific things the application already does well - empty array if truly none yet"],
+  "suggestions": ["2-4 short, concrete, actionable suggestions for what to add, clarify, or reconsider before submitting"]
+}`;
+
+    const userContent = buildUserContent(DOCS.application.text, DOCS.itinerary, DOCS.budget);
+
+    try {
+      const response = await fetch('https://dartmouth-chat-proxy.efmckenna77.workers.dev', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-Discourse-Tool': 'selfcheck'
+        },
+        body: JSON.stringify({
+          model: 'anthropic.claude-sonnet-4-6',
+          max_tokens: 3000,
+          messages: [
+            { role: 'system', content: systemPrompt },
+            { role: 'user', content: userContent }
+          ]
+        })
+      });
+
+      clearInterval(msgInterval);
+
+      if (response.status === 429) {
+        showError('You\'ve checked several applications in a short time - please wait a bit before trying again.');
+        return;
+      }
+
+      const data = await response.json();
+      const raw = (data.choices?.[0]?.message?.content) || '';
+      const clean = raw.replace(/```json|```/g, '').trim();
+      const result = JSON.parse(clean);
+      renderOutput(result);
+
+    } catch (err) {
+      clearInterval(msgInterval);
+      showError('Something went wrong processing your application. Please try again.');
+      console.error(err);
+    } finally {
+      document.getElementById('review-btn').disabled = false;
+      document.getElementById('loading').style.display = 'none';
+    }
+  }
+
+  function renderOutput(result) {
+    document.getElementById('input-card').style.display = 'none';
+    document.getElementById('output-section').style.display = 'block';
+
+    document.getElementById('out-title').textContent = result.applicant_summary || 'Your Application Feedback';
+
+    const counts = { 'Exceeds Requirements': 0, 'Meets Requirements': 0, 'Does Not Satisfy': 0, 'Unclear - More Information Needed': 0 };
+    result.criteria.forEach(c => { if (counts[c.rating] !== undefined) counts[c.rating]++; });
+
+    const chipStyles = {
+      'Exceeds Requirements': 'background:#dcfce7;color:#166534',
+      'Meets Requirements': 'background:#dbeafe;color:#1e40af',
+      'Does Not Satisfy': 'background:#fee2e2;color:#991b1b',
+      'Unclear - More Information Needed': 'background:#fef3c7;color:#92400e'
+    };
+    const chipLabels = {
+      'Exceeds Requirements': 'Exceeds',
+      'Meets Requirements': 'Meets',
+      'Does Not Satisfy': 'Does Not Satisfy',
+      'Unclear - More Information Needed': 'Unclear'
+    };
+
+    let chips = '';
+    Object.entries(counts).forEach(([k, v]) => {
+      if (v > 0) chips += `<span class="score-chip" style="${chipStyles[k]}">${v} ${chipLabels[k]}</span>`;
+    });
+    document.getElementById('score-summary').innerHTML = chips;
+
+    const ratingClass = r => {
+      if (r === 'Exceeds Requirements') return 'rating-exceeds';
+      if (r === 'Meets Requirements') return 'rating-meets';
+      if (r === 'Does Not Satisfy') return 'rating-does-not';
+      return 'rating-unclear';
+    };
+
+    document.getElementById('criteria-grid').innerHTML = result.criteria.map(c => `
+      <div class="criterion">
+        <div class="criterion-header">
+          <span class="rating-pill ${ratingClass(c.rating)}">${c.rating}</span>
+          <span class="criterion-label">${c.number}. ${c.label}</span>
+        </div>
+        <div class="criterion-body">${c.feedback}</div>
+      </div>
+    `).join('');
+
+    const strengthsSection = document.getElementById('strengths-section');
+    if (result.strengths && result.strengths.filter(s => s.trim()).length > 0) {
+      strengthsSection.style.display = 'block';
+      document.getElementById('strengths-list').innerHTML = result.strengths.filter(s => s.trim()).map(s => `<div class="feedback-item">${s}</div>`).join('');
+    } else {
+      strengthsSection.style.display = 'none';
+    }
+
+    const suggestionsSection = document.getElementById('suggestions-section');
+    if (result.suggestions && result.suggestions.filter(s => s.trim()).length > 0) {
+      suggestionsSection.style.display = 'block';
+      document.getElementById('suggestions-list').innerHTML = result.suggestions.filter(s => s.trim()).map(s => `<div class="feedback-item">${s}</div>`).join('');
+    } else {
+      suggestionsSection.style.display = 'none';
+    }
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function resetReview() {
+    document.getElementById('input-card').style.display = 'block';
+    document.getElementById('output-section').style.display = 'none';
+    removeFile('application');
+    removeFile('itinerary');
+    removeFile('budget');
+    document.getElementById('error-box').style.display = 'none';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('error-box');
+    box.textContent = msg;
+    box.style.display = 'block';
+  }
+</script>
+</body>
+</html>
